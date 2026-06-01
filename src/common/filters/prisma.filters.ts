@@ -1,11 +1,12 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { Prisma } from '../../../generated/prisma/client';
 import { Response } from 'express';
+import { PrismaClient } from '@prisma/client/extension';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 // Это глобальный обработчик ошибок Prisma, перехватывает сбои БД и отдаёт клиенту понятный HTTP-ответ вместо сырого stack trace
-@Catch(Prisma.PrismaClientKnownRequestError)
+@Catch(PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
-  catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
+  catch(exception: PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
