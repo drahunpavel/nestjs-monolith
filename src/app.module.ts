@@ -4,6 +4,9 @@ import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
+import { OrderModule } from './order/order.module';
+import { ProductModule } from './product/product.module';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
   imports: [
@@ -52,6 +55,9 @@ import { randomUUID } from 'node:crypto';
     }),
     PrismaModule,
     UserModule,
+    OrderModule,
+    ProductModule,
+    BrandModule,
   ],
 })
 export class AppModule {}
