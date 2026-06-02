@@ -3,11 +3,7 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-// generator client {
-//   provider = "prisma-client"
-//   // output   = "../generated/prisma"
-//   output   = "../node_modules/.prisma/client"
-// }
+
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -32,7 +28,7 @@ model User {
 model Order {
   id            Int            @id @default(autoincrement())
   userId        Int
-  user          User           @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderProducts OrderProduct[]
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
@@ -42,7 +38,12 @@ model Order {
 
 model Product {
   id            Int            @id @default(autoincrement())
+  title         String
+  description   String?        @db.VarChar(255)
+  price         Int
   orderProducts OrderProduct[]
+  brandId       Int
+  brand         Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
@@ -51,10 +52,20 @@ model Product {
 
 model OrderProduct {
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId Int
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([orderId, productId])
   @@map("order_products")
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  title     String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("brands")
 }
