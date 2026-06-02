@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+//TCreate extends Record<string, unknown>,
+//TUpdate extends Record<string, unknown>,
+
 @Injectable()
 export class BaseResourceService {
   constructor(
