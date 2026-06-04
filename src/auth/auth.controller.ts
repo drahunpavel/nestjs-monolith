@@ -4,6 +4,8 @@ import { LocalAuthGuard } from './guards/local.auth.guard';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
 import { CreateUserDto } from 'src/user/dto/create.user.dto';
 import { UserService } from 'src/user/user.service';
+import { CurrentUser } from 'src/common/decorators/current.user.decorator';
+import { GoogleAuthGuard } from './guards/google.auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -27,9 +29,29 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  // @Get('profile')
+  // @UseGuards(JwtAuthGuard)
+  // async profile(@Req() req) {
+  //   return req.user;
+  // }
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async profile(@Req() req) {
+  async profile(@CurrentUser() user) {
+    return user;
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async google(@Req() req) {
     return req.user;
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleCallback(@Req() req) {
+
+    const email = req.user.emails?.[0]?.value;
+
+    return this.authService.googleAuth(email);
   }
 }

@@ -43,4 +43,18 @@ export class AuthService {
       token: this.jwtService.sign({ email, id }),
     };
   }
+
+  async googleAuth(email: string) {
+    const user = await this.userService.findByEmail(email);
+
+    if (!user) {
+      return this.userService.create({ email });
+    }
+
+    return {
+      email: user.email,
+      id: user.id,
+      token: this.jwtService.sign({ email: user.email, id: user.id }),
+    };
+  }
 }
