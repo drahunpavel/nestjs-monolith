@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { OrderModule } from './order/order.module';
 import { ProductModule } from './product/product.module';
 import { BrandModule } from './brand/brand.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { BrandModule } from './brand/brand.module';
     OrderModule,
     ProductModule,
     BrandModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
