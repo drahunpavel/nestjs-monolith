@@ -1,14 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateOrderDto } from './dto/update.order.dto';
 import { CreateOrderDto } from './dto/create.order.dto';
+import Redis from 'ioredis';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly cacheKey = 'orders:all';
+  private readonly cacheTtlSec = 60;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
 
   async create(dto: CreateOrderDto) {
     const { userId, orderProduct, isPaid, paymentIntentId, totalAmount } = dto;
+
+
+    await this.invalidateOrdersCache();
 
     return this.prisma.order.create({
       data: {
@@ -34,7 +44,14 @@ export class OrderService {
   }
 
   async findAll() {
-    return this.prisma.order.findMany({
+
+    const cached = await this.redis.get(this.cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const orders = await this.prisma.order.findMany({
       // включает связанные модели
       include: {
         orderProducts: {
@@ -46,6 +63,10 @@ export class OrderService {
         // user: true
       },
     });
+
+    await this.redis.setex(this.cacheKey, this.cacheTtlSec, JSON.stringify(orders));
+
+    return orders;
   }
 
   async findOne(id: number) {
@@ -63,6 +84,8 @@ export class OrderService {
 
   async update(id: number, dto: UpdateOrderDto) {
     const { userId, orderProduct } = dto;
+
+    await this.invalidateOrdersCache();
 
     return this.prisma.order.update({
       where: { id },
@@ -87,8 +110,15 @@ export class OrderService {
   }
 
   async remove(id: number) {
+
+    await this.invalidateOrdersCache();
+
     return this.prisma.order.delete({
       where: { id },
     });
+  }
+
+  async invalidateOrdersCache() {
+    await this.redis.del(this.cacheKey);
   }
 }
