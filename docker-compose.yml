@@ -48,11 +48,25 @@ services:
     networks:
       - app-network
 
+  minio:
+    image: minio/minio:latest
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_S3_PORT}:9000"   # S3 API
+      - "${MINIO_CONSOLE_PORT}:9001"   # Web Console
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
   redis_data:
   elasticsearch_data:
   mongo_data:
+  minio_data:
 
 networks:
   app-network:
