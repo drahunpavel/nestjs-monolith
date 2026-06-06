@@ -12,9 +12,17 @@ import { RedisModule } from './redis/redis.module';
 import { ElasticModule } from './elastic/elastic.module';
 import { StripeModule } from './stripe/stripe.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('MONGO_URL'),
+      }),
+      inject: [ConfigService],
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
