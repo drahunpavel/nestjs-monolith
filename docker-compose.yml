@@ -1,4 +1,22 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env.production.local
+    ports:
+      - ${APP_PORT}:3000
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+      - mongo
+      - minio
+    networks:
+      - app-network
+
   postgres:
     image: postgres:latest
     restart: always
@@ -60,6 +78,8 @@ services:
       - "${MINIO_CONSOLE_PORT}:9001"   # Web Console
     volumes:
       - minio_data:/data
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
