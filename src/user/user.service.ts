@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BaseResourceService } from 'src/common/base-resource/base.resource.service';
 import { CreateUserDto } from './dto/create.user.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable() // Этот класс можно создавать и внедрять через Nest, не через new UserService()
 export class UserService extends BaseResourceService {
