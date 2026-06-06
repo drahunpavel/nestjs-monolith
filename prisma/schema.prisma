@@ -3,7 +3,6 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -26,12 +25,15 @@ model User {
 }
 
 model Order {
-  id            Int            @id @default(autoincrement())
-  userId        Int
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderProducts OrderProduct[]
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  id              Int            @id @default(autoincrement())
+  userId          Int
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderProducts   OrderProduct[]
+  isPaid          Boolean        @default(false) @map("is_paid")
+  paymentIntentId String?        @unique @map("payment_intent_id")
+  totalAmount     Int            @default(0) @map("total_amount")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
 
   @@map("orders")
 }
