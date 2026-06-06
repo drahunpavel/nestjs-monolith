@@ -1,8 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateOrderDto } from './dto/update.order.dto';
 import { CreateOrderDto } from './dto/create.order.dto';
 import Redis from 'ioredis';
+import Stripe from 'stripe';
 
 @Injectable()
 export class OrderService {
@@ -12,14 +13,28 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
+    @Inject('STRIPE_CLIENT') private readonly stripeClient: Stripe.Stripe,
   ) {}
 
   async create(dto: CreateOrderDto) {
     const { userId, orderProduct, isPaid, paymentIntentId, totalAmount } = dto;
 
-
     await this.invalidateOrdersCache();
 
+
+    let createdPaymentIntentId = paymentIntentId;
+    if(!isPaid) {
+      const paymentIntent = await this.stripeClient.paymentIntents.create({
+        amount: totalAmount,
+        currency: 'usd',
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+      });
+      createdPaymentIntentId = paymentIntent.id;
+    }
+    
     return this.prisma.order.create({
       data: {
         user: {
@@ -39,12 +54,14 @@ export class OrderService {
             },
           })),
         },
+        totalAmount,
+        isPaid,
+        paymentIntentId: createdPaymentIntentId,
       },
     });
   }
 
   async findAll() {
-
     const cached = await this.redis.get(this.cacheKey);
 
     if (cached) {
@@ -64,7 +81,11 @@ export class OrderService {
       },
     });
 
-    await this.redis.setex(this.cacheKey, this.cacheTtlSec, JSON.stringify(orders));
+    await this.redis.setex(
+      this.cacheKey,
+      this.cacheTtlSec,
+      JSON.stringify(orders),
+    );
 
     return orders;
   }
@@ -110,7 +131,6 @@ export class OrderService {
   }
 
   async remove(id: number) {
-
     await this.invalidateOrdersCache();
 
     return this.prisma.order.delete({
@@ -120,5 +140,20 @@ export class OrderService {
 
   async invalidateOrdersCache() {
     await this.redis.del(this.cacheKey);
+  }
+
+  async updatePaymentStatus(paymentIntentId: string, isPaid: boolean) {
+    if(!paymentIntentId || !isPaid) {
+      throw new BadRequestException('Payment intent ID and isPaid are required');
+    }
+
+    const paymentIntent = await this.stripeClient.paymentIntents.retrieve(paymentIntentId);
+    if(paymentIntent.status === 'succeeded') {
+      await this.prisma.order.update({
+        where: { paymentIntentId },
+        data: { isPaid },
+      });
+    }
+    return paymentIntent;
   }
 }
