@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
 import { ElasticModule } from './elastic/elastic.module';
 import { StripeModule } from './stripe/stripe.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { StripeModule } from './stripe/stripe.module';
     RedisModule,
     ElasticModule,
     StripeModule,
+    WebhookModule,
   ],
 })
 export class AppModule {}

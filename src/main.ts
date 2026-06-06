@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { PrismaExceptionFilter } from './common/filters/prisma.filters';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -13,6 +14,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe()); //  включает автоматическую проверку входящих данных на всех маршрутах приложения
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.setGlobalPrefix('api');
+  app.use(
+    json({
+      verify: (req: any, res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('NestJS Monolith API')
