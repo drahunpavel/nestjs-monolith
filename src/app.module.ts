@@ -13,6 +13,7 @@ import { ElasticModule } from './elastic/elastic.module';
 import { StripeModule } from './stripe/stripe.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     ElasticModule,
     StripeModule,
     WebhookModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
